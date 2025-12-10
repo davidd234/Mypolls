@@ -57,12 +57,15 @@ def fetch_final_election_results() -> Dict[str, float]:
     prompt = """
     Caută pe web rezultatele oficiale ale alegerilor pentru Primăria Generală București 2024.
 
-    Returnează STRICT JSON:
+    Returnează STRICT un JSON valid:
+
     {
       "Nicușor Dan": NUMAR,
       "Gabriela Firea": NUMAR,
       "Cristian Popescu Piedone": NUMAR
     }
+
+    Valorile pot fi voturi SAU procente.
     """
 
     response = client.responses.create(
@@ -73,16 +76,23 @@ def fetch_final_election_results() -> Dict[str, float]:
     )
 
     raw = response.output_text
-
     data = extract_json(raw)
+
     if not data:
         return {}
+
+    # 🔥  Detectăm dacă sunt voturi brute și le convertim în procente
+    values = list(data.values())
+
+    if any(v > 100 for v in values):
+        total = sum(values)
+        data = {k: round(v / total * 100, 2) for k, v in data.items()}
+        print("📌 Rezultatele au fost convertite automat în procente.")
 
     save_json("data/results_buc.json", data)
     print("✔ Rezultatele PMB salvate în data/results_buc.json")
 
     return data
-
 
 # =====================================================
 # FETCH LATEST POLLS
