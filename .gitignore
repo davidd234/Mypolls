@@ -1,0 +1,6 @@
+secret_key.py
+__pycache__/
+*.pyc
+.env
+.venv/
+.idea/

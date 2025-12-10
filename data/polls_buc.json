@@ -1,0 +1,86 @@
+[
+  {
+    "institut": "CURS",
+    "data": "2024-05-20",
+    "esantion": 1200,
+    "metoda": "CATI",
+    "procentaje": {
+      "Nicușor Dan": 46.0,
+      "Gabriela Firea": 24.0,
+      "Cristian Popescu Piedone": 27.0
+    },
+    "marja_eroare": 3.0
+  },
+  {
+    "institut": "Avangarde",
+    "data": "2024-05-18",
+    "esantion": 1000,
+    "metoda": "CATI",
+    "procentaje": {
+      "Nicușor Dan": 41.0,
+      "Gabriela Firea": 29.0,
+      "Cristian Popescu Piedone": 23.0
+    },
+    "marja_eroare": 3.5
+  },
+  {
+    "institut": "INSCOP",
+    "data": "2024-05-25",
+    "esantion": 1100,
+    "metoda": "CATI",
+    "procentaje": {
+      "Nicușor Dan": 44.0,
+      "Gabriela Firea": 26.0,
+      "Cristian Popescu Piedone": 25.0
+    },
+    "marja_eroare": 3.1
+  },
+  {
+    "institut": "AtlasIntel",
+    "data": "2024-05-10",
+    "esantion": 1500,
+    "metoda": "online",
+    "procentaje": {
+      "Nicușor Dan": 43.0,
+      "Gabriela Firea": 28.0,
+      "Cristian Popescu Piedone": 24.0
+    },
+    "marja_eroare": 2.8
+  },
+  {
+    "institut": "Novel Research",
+    "data": "2024-05-22",
+    "esantion": 900,
+    "metoda": "telefonic",
+    "procentaje": {
+      "Nicușor Dan": 42.0,
+      "Gabriela Firea": 25.0,
+      "Cristian Popescu Piedone": 26.0
+    },
+    "marja_eroare": 3.8
+  },
+  {
+    "institut": "IPSOS",
+    "data": "2024-05-16",
+    "esantion": 1000,
+    "metoda": "online",
+    "procentaje": {
+      "Nicușor Dan": 45.0,
+      "Gabriela Firea": 27.0,
+      "Cristian Popescu Piedone": 22.0
+    },
+    "marja_eroare": 3.0
+  },
+  {
+    "institut": "AtlasIntel",
+    "data": "2025-11-30",
+    "esantion": 2964,
+    "metoda": "recrutare digitală aleatorie",
+    "procentaje": {
+      "Anca Alexandrescu": 24.0,
+      "Daniel Băluță": 23.9,
+      "Ciprian Ciucu": 22.5
+    },
+    "marja_eroare": 1.5
+  }
+]

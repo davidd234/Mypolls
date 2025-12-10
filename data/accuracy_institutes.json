@@ -1,0 +1,20 @@
+{
+  "CURS": {
+    "bonus_greutate": 0.9
+  },
+  "Avangarde": {
+    "bonus_greutate": 0.9
+  },
+  "INSCOP": {
+    "bonus_greutate": 0.9
+  },
+  "AtlasIntel": {
+    "bonus_greutate": 0.9
+  },
+  "Novel Research": {
+    "bonus_greutate": 0.9
+  },
+  "IPSOS": {
+    "bonus_greutate": 0.9
+  }
+}
