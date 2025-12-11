@@ -1,20 +1,128 @@
 {
   "CURS": {
-    "bonus_greutate": 0.988
+    "bonus_greutate": 1.061,
+    "eroare_medie": 4.814,
+    "cand": {
+      "Nicușor Dan": {
+        "bonus_greutate": 1.143,
+        "eroare_medie": 1.94
+      },
+      "Gabriela Firea": {
+        "bonus_greutate": 1.151,
+        "eroare_medie": 1.669
+      },
+      "Cristian Popescu Piedone": {
+        "bonus_greutate": 0.891,
+        "eroare_medie": 10.834
+      }
+    }
   },
   "Avangarde": {
-    "bonus_greutate": 0.9
+    "bonus_greutate": 1.004,
+    "eroare_medie": 6.814,
+    "cand": {
+      "Nicușor Dan": {
+        "bonus_greutate": 1.0,
+        "eroare_medie": 6.94
+      },
+      "Gabriela Firea": {
+        "bonus_greutate": 1.008,
+        "eroare_medie": 6.669
+      },
+      "Cristian Popescu Piedone": {
+        "bonus_greutate": 1.003,
+        "eroare_medie": 6.834
+      }
+    }
   },
   "INSCOP": {
-    "bonus_greutate": 1.012
+    "bonus_greutate": 1.042,
+    "eroare_medie": 5.474,
+    "cand": {
+      "Nicușor Dan": {
+        "bonus_greutate": 1.086,
+        "eroare_medie": 3.94
+      },
+      "Gabriela Firea": {
+        "bonus_greutate": 1.094,
+        "eroare_medie": 3.669
+      },
+      "Cristian Popescu Piedone": {
+        "bonus_greutate": 0.948,
+        "eroare_medie": 8.834
+      }
+    }
   },
   "AtlasIntel": {
-    "bonus_greutate": 0.929
+    "bonus_greutate": 1.023,
+    "eroare_medie": 6.148,
+    "cand": {
+      "Nicușor Dan": {
+        "bonus_greutate": 1.057,
+        "eroare_medie": 4.94
+      },
+      "Gabriela Firea": {
+        "bonus_greutate": 1.037,
+        "eroare_medie": 5.669
+      },
+      "Cristian Popescu Piedone": {
+        "bonus_greutate": 0.975,
+        "eroare_medie": 7.834
+      }
+    }
   },
   "Novel Research": {
-    "bonus_greutate": 0.929
+    "bonus_greutate": 1.023,
+    "eroare_medie": 6.148,
+    "cand": {
+      "Nicușor Dan": {
+        "bonus_greutate": 1.029,
+        "eroare_medie": 5.94
+      },
+      "Gabriela Firea": {
+        "bonus_greutate": 1.122,
+        "eroare_medie": 2.669
+      },
+      "Cristian Popescu Piedone": {
+        "bonus_greutate": 0.92,
+        "eroare_medie": 9.834
+      }
+    }
   },
   "IPSOS": {
-    "bonus_greutate": 1.003
+    "bonus_greutate": 1.071,
+    "eroare_medie": 4.481,
+    "cand": {
+      "Nicușor Dan": {
+        "bonus_greutate": 1.115,
+        "eroare_medie": 2.94
+      },
+      "Gabriela Firea": {
+        "bonus_greutate": 1.065,
+        "eroare_medie": 4.669
+      },
+      "Cristian Popescu Piedone": {
+        "bonus_greutate": 1.032,
+        "eroare_medie": 5.834
+      }
+    }
+  },
+  "Centrul de Sociologie Urbană și Regională (CURS)": {
+    "bonus_greutate": 0.901,
+    "eroare_medie": 10.481,
+    "cand": {
+      "Nicușor Dan": {
+        "bonus_greutate": 0.7,
+        "eroare_medie": 18.94
+      },
+      "Gabriela Firea": {
+        "bonus_greutate": 1.094,
+        "eroare_medie": 3.669
+      },
+      "Cristian Popescu Piedone": {
+        "bonus_greutate": 0.948,
+        "eroare_medie": 8.834
+      }
+    }
   }
 }

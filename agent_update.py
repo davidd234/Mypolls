@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from datetime import date
 from typing import List, Dict, Any
 
 from openai import OpenAI
@@ -35,13 +36,12 @@ def extract_json(text: str):
     Funcționează chiar dacă modelul dă text nestructurat.
     """
 
-    # caut cel mai mare bloc JSON
     matches = re.findall(r"\{(?:[^{}]|(?:\{[^{}]*\}))*\}", text, re.DOTALL)
 
     for m in matches:
         try:
             return json.loads(m)
-        except:
+        except Exception:
             continue
 
     print("❌ Nu am putut extrage niciun JSON din răspuns!")
@@ -54,11 +54,18 @@ def extract_json(text: str):
 # =====================================================
 
 def fetch_final_election_results() -> Dict[str, float]:
+    path = "data/results_buc.json"
+
+    # 1️⃣ Dacă există fișierul, îl folosim direct
+    if os.path.exists(path):
+        print("✔ Rezultatele finale există deja. Nu refacem fetch-ul.")
+        return load_json(path, {})
+
+    # 2️⃣ Altfel îl căutăm pe web
     prompt = """
     Caută pe web rezultatele oficiale ale alegerilor pentru Primăria Generală București 2024.
 
     Returnează STRICT un JSON valid:
-
     {
       "Nicușor Dan": NUMAR,
       "Gabriela Firea": NUMAR,
@@ -79,20 +86,22 @@ def fetch_final_election_results() -> Dict[str, float]:
     data = extract_json(raw)
 
     if not data:
-        return {}
+        print("❌ Nu s-au găsit rezultate. Revin la fișier dacă există.")
+        return load_json(path, {})
 
-    # 🔥  Detectăm dacă sunt voturi brute și le convertim în procente
     values = list(data.values())
 
+    # Dacă sunt voturi brute → transformăm în procente
     if any(v > 100 for v in values):
         total = sum(values)
         data = {k: round(v / total * 100, 2) for k, v in data.items()}
         print("📌 Rezultatele au fost convertite automat în procente.")
 
-    save_json("data/results_buc.json", data)
-    print("✔ Rezultatele PMB salvate în data/results_buc.json")
+    save_json(path, data)
+    print("✔ Rezultatele PMB au fost salvate în data/results_buc.json")
 
     return data
+
 
 # =====================================================
 # FETCH LATEST POLLS
@@ -100,7 +109,7 @@ def fetch_final_election_results() -> Dict[str, float]:
 
 def fetch_latest_polls_bucuresti(max_polls: int = 10) -> List[Dict[str, Any]]:
     prompt = """
-    Caută pe web cele mai recente sondaje pentru Primăria Municipiului București.
+    Caută pe web cele mai recente sondaje pentru Primăria Municipiului București 2024 (alegerile din iunie 2024).
 
     Returnează STRICT o LISTĂ JSON de obiecte:
     [
@@ -127,16 +136,36 @@ def fetch_latest_polls_bucuresti(max_polls: int = 10) -> List[Dict[str, Any]]:
     )
 
     raw = response.output_text
-
     data = extract_json(raw)
     if not data:
         return []
 
-    if isinstance(data, dict):
+    if isinstance(data, dict):  # dacă întoarce un singur sondaj
         data = [data]
 
-    print(f"✔ Am găsit {len(data)} sondaje noi")
-    return data[:max_polls]
+    target_candidates = {"Nicușor Dan", "Gabriela Firea", "Cristian Popescu Piedone"}
+    filtered: List[Dict[str, Any]] = []
+
+    for p in data:
+        try:
+            poll_date = date.fromisoformat(p.get("data", "1900-01-01"))
+        except Exception:
+            continue
+
+        # folosim strict anul 2024 pentru alegerile PMB 2024
+        if poll_date.year != 2024:
+            continue
+
+        procentaje = p.get("procentaje", {}) or {}
+
+        # trebuie să aibă cel puțin unul dintre candidații PMB 2024
+        if not any(c in procentaje for c in target_candidates):
+            continue
+
+        filtered.append(p)
+
+    print(f"✔ Am găsit {len(filtered)} sondaje noi valide pentru PMB 2024")
+    return filtered[:max_polls]
 
 
 # =====================================================
@@ -168,40 +197,6 @@ def update_polls_json():
 
 
 # =====================================================
-# RECALCULATE BONUS
-# =====================================================
-
-def recalc_accuracy_bonuses():
-    polls = load_json("data/polls_buc.json", [])
-    results = load_json("data/results_buc.json", {})
-
-    if not polls or not results:
-        print("❌ Lipsesc sondaje sau rezultate pentru recalcularea bonusurilor")
-        return
-
-    errors: Dict[str, List[float]] = {}
-
-    for p in polls:
-        inst = p["institut"]
-        if inst not in errors:
-            errors[inst] = []
-        for cand, real in results.items():
-            if cand in p["procentaje"]:
-                errors[inst].append(abs(p["procentaje"][cand] - real))
-
-    bonuses = {}
-    max_err = max(sum(v)/len(v) for v in errors.values())
-
-    for inst, vals in errors.items():
-        mean_err = sum(vals)/len(vals)
-        bonus = 1.2 - 0.3 * (mean_err / max_err)
-        bonuses[inst] = {"bonus_greutate": round(bonus, 3)}
-
-    save_json("data/accuracy_institutes.json", bonuses)
-    print("✔ Bonusurile recalibrate.")
-
-
-# =====================================================
 # MAIN
 # =====================================================
 
@@ -210,14 +205,11 @@ def main():
     print("      AGENT — FULL AUTO 🤖")
     print("==============================")
 
-    print("\n1️⃣  Fetch rezultate PMB...")
+    print("\n1️⃣  Fetch rezultate PMB 2024...")
     fetch_final_election_results()
 
-    print("\n2️⃣  Fetch sondaje...")
+    print("\n2️⃣  Fetch + merge sondaje PMB 2024...")
     update_polls_json()
-
-    print("\n3️⃣  Recalculare bonusuri...")
-    recalc_accuracy_bonuses()
 
     print("\n==============================")
     print("       ✔ AGENT FINALIZAT")

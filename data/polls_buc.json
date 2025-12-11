@@ -72,18 +72,6 @@
     "marja_eroare": 3.0
   },
   {
-    "institut": "AtlasIntel",
-    "data": "2025-11-30",
-    "esantion": 2964,
-    "metoda": "recrutare digitală aleatorie",
-    "procentaje": {
-      "Anca Alexandrescu": 24.0,
-      "Daniel Băluță": 23.9,
-      "Ciprian Ciucu": 22.5
-    },
-    "marja_eroare": 1.5
-  },
-  {
     "institut": "INSCOP",
     "data": "2025-11-20",
     "esantion": 1107,
@@ -96,15 +84,41 @@
     "marja_eroare": 2.95
   },
   {
-    "institut": "CURS",
-    "data": "2025-10-19",
-    "esantion": 1072,
-    "metoda": "față în față",
+    "institut": "Centrul de Sociologie Urbană și Regională (CURS)",
+    "data": "2024-04-30",
+    "esantion": 1107,
+    "metoda": "sondaj de opinie",
     "procentaje": {
-      "Daniel Băluță": 25,
-      "Cătălin Drulă": 18,
-      "Ciprian Ciucu": 18,
-      "Anca Alexandrescu": 10
+      "Nicușor Dan": 29,
+      "Gabriela Firea": 26,
+      "Cristian Popescu Piedone": 25
+    },
+    "marja_eroare": 2.95
+  },
+  {
+    "institut": "CURS",
+    "data": "2024-04-01",
+    "esantion": 1000,
+    "metoda": "sondaj de opinie",
+    "procentaje": {
+      "Nicușor Dan": 29,
+      "Gabriela Firea": 26,
+      "Cristian Popescu Piedone": 25,
+      "Sebastian Burduja": 12,
+      "Mihai Enache": 7,
+      "Altul": 1
+    },
+    "marja_eroare": 3
+  },
+  {
+    "institut": "Centrul de Sociologie Urbană și Regională (CURS)",
+    "data": "2024-04-01",
+    "esantion": 1000,
+    "metoda": "sondaj de opinie",
+    "procentaje": {
+      "Nicușor Dan": 29,
+      "Gabriela Firea": 26,
+      "Cristian Popescu Piedone": 25
     },
     "marja_eroare": 3
   }

@@ -22,16 +22,22 @@ def main():
     print("     SISTEM COMPLET MY POLLS – RUN ALL ")
     print("=======================================\n")
 
-    # 1️⃣ RULĂM AGENTUL AI
+    # 1️⃣ RULĂM AGENTUL AI (fetch rezultate + sondaje)
     code = run_script("AGENT (agent_update.py)", "agent_update.py")
     if code != 0:
         print("❌ Agentul a eșuat. Oprim execuția.")
         return
 
-    # 2️⃣ RULĂM AGREGATORUL
+    # 2️⃣ RULĂM AGREGATORUL (main.py — calculează estimarea + salvează snapshot)
     code = run_script("AGREGATOR (main.py)", "main.py")
     if code != 0:
         print("❌ Agregatorul a eșuat.")
+        return
+
+    # 3️⃣ RULĂM AGENTUL DE CALIBRARE (update bonusuri pentru viitoarele rulări)
+    code = run_script("CALIBRARE (calibration_agent.py)", "testare_calibrare/calibration_agent.py")
+    if code != 0:
+        print("❌ Agentul de calibrare a eșuat.")
         return
 
     print("\n=======================================")
