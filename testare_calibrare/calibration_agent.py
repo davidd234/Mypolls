@@ -4,153 +4,254 @@ from datetime import date
 from pathlib import Path
 from typing import Dict, List, Any
 
-HISTORY_DIR = Path("data/history")
-POLLS_PATH = Path("data/polls_buc.json")
-ACCURACY_PATH = Path("data/accuracy_institutes.json")
+# ----------------------------
+# DETECTARE ROOT PROIECT (universală)
+# ----------------------------
+THIS_FILE = Path(__file__).resolve()
+ROOT = THIS_FILE
+
+# urcăm în sus până găsim folderul "data"
+while ROOT != ROOT.parent:
+    if (ROOT / "data").exists():
+        break
+    ROOT = ROOT.parent
+
+if not (ROOT / "data").exists():
+    raise FileNotFoundError("❌ Nu am putut găsi folderul 'data' în niciun director părinte.")
+
+# acum toate path-urile sunt 100% corecte, indiferent unde rulează scriptul
+HISTORY_DIR = ROOT / "data" / "history"
+POLLS_PATH = ROOT / "data" / "polls_buc.json"
+ACCURACY_PATH = ROOT / "data" / "accuracy_institutes.json"
+
+print(f"📁 ROOT detectat: {ROOT}")
+print(f"📁 HISTORY_DIR: {HISTORY_DIR}")
+
+# ----------------------------
+# NORMALIZARE INSTITUTE (FULL)
+# ----------------------------
+INSTITUTE_NORMALIZATION = {
+    "CURS": "CURS",
+    "Centrul de Sociologie Urbană și Regională (CURS)": "CURS",
+    "Centrul de Sociologie Urbană și Regională": "CURS",
+    "Centrul de Sociologie Urbana si Regionala (CURS)": "CURS",
+
+    "INSCOP": "INSCOP",
+    "Inscop Research": "INSCOP",
+
+    "AtlasIntel": "AtlasIntel",
+    "Atlas Intel": "AtlasIntel",
+
+    "Avangarde": "Avangarde",
+    "Novel Research": "Novel Research",
+    "IPSOS": "IPSOS",
+}
+
+def normalize_institute(name: str) -> str:
+    """Normalizează numele tuturor institutele pentru consistență."""
+    if not isinstance(name, str):
+        return "necunoscut"
+    return INSTITUTE_NORMALIZATION.get(name.strip(), name.strip())
 
 
+# ----------------------------
+# LOADING UTILITIES
+# ----------------------------
 def load_json(path: Path, default):
-    if not path.exists():
-        return default
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        if path.exists():
+            return json.loads(path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"⚠️ EROARE la citirea {path}: {e}")
+    return default
 
 
 def load_latest_history() -> Dict[str, Any]:
+    """Încarcă ultimul snapshot din data/history"""
     if not HISTORY_DIR.exists():
-        raise FileNotFoundError("Nu există niciun istoric de rulări în data/history.")
+        raise FileNotFoundError("❌ Nu există directorul data/history.")
 
-    run_files: List[Path] = sorted(
+    run_files = sorted(
         HISTORY_DIR.glob("rezultate_*.json"),
         key=lambda p: p.stat().st_mtime,
         reverse=True
     )
+
     if not run_files:
-        raise FileNotFoundError("Nu am găsit fișiere de istoric în data/history.")
+        raise FileNotFoundError("❌ Nu există fișiere de tip rezultate_*.json în history.")
 
-    latest_file = run_files[0]
-    with open(latest_file, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    latest = run_files[0]
+    print(f"📂 Folosesc snapshotul: {latest.name}")
 
-    print(f"📂 Folosesc ultimul snapshot: {latest_file}")
-    return data
+    return load_json(latest, {})
 
 
+# ----------------------------
+# CALCUL BONUSURI
+# ----------------------------
 def compute_institute_bonuses(
     final_results: Dict[str, float],
     election_date: date,
     max_age_days: int = 40,
-    learning_rate: float = 0.3,
+    learning_rate_bonus: float = 0.3,
+    learning_rate_coef_global: float = 0.7,
+    learning_rate_coef_cand: float = 0.7,
 ) -> Dict[str, Dict[str, Any]]:
-    """
-    Calibrează bonusurile de acuratețe pe baza ultimului snapshot:
-    - ține cont DOAR de sondajele dinainte de alegeri (până la max_age_days)
-    - calculează eroare globală per institut
-    - calculează eroare per candidat per institut
-    - aplică un learning rate peste bonusurile vechi (nu sare brusc)
-    """
 
+    # încărcăm sondaje brute
     polls = load_json(POLLS_PATH, [])
+    previous = load_json(ACCURACY_PATH, {})
+
     if not polls:
-        raise ValueError("Lipsește fișierul cu sondaje sau este gol.")
+        raise ValueError("❌ polls_buc.json este gol sau nu există.")
 
-    # Erori globale și per candidat
-    errors_global: Dict[str, List[float]] = defaultdict(list)
-    errors_per_cand: Dict[str, Dict[str, List[float]]] = defaultdict(lambda: defaultdict(list))
+    # colectoare de erori
+    errors_global = defaultdict(list)
+    errors_per_cand = defaultdict(lambda: defaultdict(list))
+    ratios_global = defaultdict(list)
+    ratios_per_cand = defaultdict(lambda: defaultdict(list))
 
+    # pondere institut vs candidat
+    GAMMA_INST_COEF = 0.7
+    GAMMA_CAND_COEF = 0.3
+
+    # procesăm fiecare sondaj
     for poll in polls:
-        try:
-            poll_date = date.fromisoformat(poll.get("data", "1900-01-01"))
-        except Exception:
+
+        # validare minimă
+        if "institut" not in poll or "procentaje" not in poll or "data" not in poll:
+            print("⚠️ Sondaj corupt ignorat:", poll)
             continue
 
-        # distanța dintre ALEGERI și sondaj
-        age_days = (election_date - poll_date).days
+        # normalizare nume institut
+        inst = normalize_institute(poll["institut"])
+        procentaje = poll.get("procentaje", {})
 
-        # ignorăm sondajele din viitor sau cu prea mult timp înainte de alegeri
+        # validare dată
+        try:
+            poll_date = date.fromisoformat(poll["data"])
+        except:
+            print(f"⚠️ Dată invalidă în sondaj: {poll}")
+            continue
+
+        # ignorăm sondaje în afara ferestrei
+        age_days = (election_date - poll_date).days
         if age_days < 0 or age_days > max_age_days:
             continue
 
-        institute = poll.get("institut", "necunoscut")
-        procentaje = poll.get("procentaje", {}) or {}
-
-        for candidate, real_value in final_results.items():
-            polled_value = procentaje.get(candidate)
-            if polled_value is None:
-                continue
-            diff = abs(polled_value - real_value)
-            errors_global[institute].append(diff)
-            errors_per_cand[institute][candidate].append(diff)
-
-    if not any(errors_global.values()):
-        raise ValueError("Nu am putut calcula erori pe baza sondajelor existente (după filtre).")
-
-    # Erori medii globale
-    mean_global_errors: Dict[str, float] = {
-        inst: (sum(vals) / len(vals))
-        for inst, vals in errors_global.items()
-        if vals
-    }
-
-    max_err_global = max(mean_global_errors.values()) if mean_global_errors else 1.0
-
-    # Erori medii per candidat
-    mean_cand_errors: Dict[str, Dict[str, float]] = {}
-    for inst, cand_dict in errors_per_cand.items():
-        mean_cand_errors[inst] = {}
-        for cand, vals in cand_dict.items():
-            if not vals:
-                continue
-            mean_cand_errors[inst][cand] = sum(vals) / len(vals)
-
-    # Încărcăm bonusurile anterioare pentru learning rate
-    previous = load_json(ACCURACY_PATH, {})
-
-    bonuses: Dict[str, Dict[str, Any]] = {}
-
-    def clamp_bonus(x: float) -> float:
-        # ținem bonusul într-un interval rezonabil
-        return max(0.7, min(1.3, x))
-
-    for inst, mean_err in mean_global_errors.items():
-        # bonus brut pe baza erorii globale
-        raw_global_bonus = 1.2 - 0.3 * (mean_err / max_err_global if max_err_global else 0.0)
-
-        prev_inst = previous.get(inst, {}) or {}
-        prev_global_bonus = prev_inst.get("bonus_greutate", 1.0)
-        prev_global_err = prev_inst.get("eroare_medie", mean_err)
-
-        # aplicăm learning rate
-        new_global_bonus = (1.0 - learning_rate) * prev_global_bonus + learning_rate * raw_global_bonus
-        new_global_err = (1.0 - learning_rate) * prev_global_err + learning_rate * mean_err
-
-        new_global_bonus = clamp_bonus(new_global_bonus)
-
-        cand_block: Dict[str, Any] = {}
-        inst_cand_errs = mean_cand_errors.get(inst, {})
-
+        # coeficienții anteriori
+        prev_inst = previous.get(inst, {})
+        prev_global_coef = float(prev_inst.get("coeficient_procente", 1.0))
         prev_cand_block = prev_inst.get("cand", {}) or {}
 
-        for cand, mean_err_cand in inst_cand_errs.items():
-            raw_cand_bonus = 1.2 - 0.3 * (mean_err_cand / max_err_global if max_err_global else 0.0)
+        # analizăm fiecare candidat
+        for cand, real in final_results.items():
 
-            prev_cand_info = prev_cand_block.get(cand, {}) or {}
-            prev_cand_bonus = prev_cand_info.get("bonus_greutate", prev_global_bonus)
-            prev_cand_err = prev_cand_info.get("eroare_medie", mean_err_cand)
+            if cand not in procentaje:
+                continue
+            raw = procentaje[cand]
 
-            new_cand_bonus = (1.0 - learning_rate) * prev_cand_bonus + learning_rate * raw_cand_bonus
-            new_cand_err = (1.0 - learning_rate) * prev_cand_err + learning_rate * mean_err_cand
+            prev_cand_info = prev_cand_block.get(cand, {})
+            prev_cand_coef = float(prev_cand_info.get("coeficient_procente", 1.0))
 
-            new_cand_bonus = clamp_bonus(new_cand_bonus)
+            # coeficient efectiv folosit în iteratia anterioară
+            effective_coef = (prev_global_coef**GAMMA_INST_COEF) * (prev_cand_coef**GAMMA_CAND_COEF)
+            adjusted = raw * effective_coef
+
+            # erori
+            diff = abs(adjusted - real)
+            errors_global[inst].append(diff)
+            errors_per_cand[inst][cand].append(diff)
+
+            # raport real/ajustat
+            if adjusted > 0:
+                ratios_global[inst].append(real / adjusted)
+                ratios_per_cand[inst][cand].append(real / adjusted)
+
+    # dacă nu există erori — nu putem calibra
+    if not any(errors_global.values()):
+        raise ValueError("❌ Nu am putut calcula erori. Probabil nu sunt sondaje valide.")
+
+    # ----------------------
+    # Calcule errori & ratio
+    # ----------------------
+    mean_global_err = {inst: sum(v)/len(v) for inst, v in errors_global.items()}
+    max_err = max(mean_global_err.values())
+
+    mean_cand_err = {
+        inst: {cand: sum(vals)/len(vals) for cand, vals in cand_dict.items()}
+        for inst, cand_dict in errors_per_cand.items()
+    }
+
+    mean_ratio_global = {
+        inst: sum(v)/len(v) for inst, v in ratios_global.items()
+    }
+
+    mean_ratio_cand = {
+        inst: {cand: sum(vv)/len(vv) for cand, vv in ratios_per_cand[inst].items()}
+        for inst in ratios_per_cand
+    }
+
+    # ----------------------
+    # CLAMP-uri ultra-robuste
+    # ----------------------
+    def clamp_bonus(x): return max(0.7, min(1.3, x))
+    def clamp_global(x): return max(0.6, min(1.4, x))
+    def clamp_cand(x):   return max(0.5, min(1.6, x))
+
+    # ----------------------
+    # Generăm noul accuracy_institutes
+    # ----------------------
+    bonuses = {}
+
+    for inst, err_inst in mean_global_err.items():
+
+        prev_inst = previous.get(inst, {})
+
+        # bonus greutate global
+        raw_bonus_g = 1.2 - 0.3 * (err_inst / max_err)
+        new_bonus_g = (
+            (1-learning_rate_bonus) * float(prev_inst.get("bonus_greutate", 1.0))
+            + learning_rate_bonus * raw_bonus_g
+        )
+        new_bonus_g = clamp_bonus(new_bonus_g)
+
+        # coeficient global procente
+        ratio_g = mean_ratio_global.get(inst, 1.0)
+        prev_coef_g = float(prev_inst.get("coeficient_procente", 1.0))
+        raw_coef_g = prev_coef_g * ratio_g
+        new_coef_g = (1-learning_rate_coef_global)*prev_coef_g + learning_rate_coef_global*raw_coef_g
+        new_coef_g = clamp_global(new_coef_g)
+
+        # PREGĂTIM blocul de candidați
+        cand_block = {}
+        prev_cand_block = prev_inst.get("cand", {})
+
+        for cand, err_c in mean_cand_err.get(inst, {}).items():
+            # bonus candidat
+            raw_bonus_c = 1.2 - 0.3 * (err_c / max_err)
+            prev_bonus_c = float(prev_cand_block.get(cand, {}).get("bonus_greutate", new_bonus_g))
+            new_bonus_c = (1-learning_rate_bonus)*prev_bonus_c + learning_rate_bonus*raw_bonus_c
+            new_bonus_c = clamp_bonus(new_bonus_c)
+
+            # coeficient candidat
+            prev_coef_c = float(prev_cand_block.get(cand, {}).get("coeficient_procente", 1.0))
+            ratio_c = mean_ratio_cand.get(inst, {}).get(cand, 1.0)
+            raw_coef_c = prev_coef_c * ratio_c
+            new_coef_c = (1-learning_rate_coef_cand)*prev_coef_c + learning_rate_coef_cand*raw_coef_c
+            new_coef_c = clamp_cand(new_coef_c)
 
             cand_block[cand] = {
-                "bonus_greutate": round(new_cand_bonus, 3),
-                "eroare_medie": round(new_cand_err, 3),
+                "bonus_greutate": round(new_bonus_c,3),
+                "eroare_medie": round(err_c,3),
+                "coeficient_procente": round(new_coef_c,4)
             }
 
+        # salvăm institutul
         bonuses[inst] = {
-            "bonus_greutate": round(new_global_bonus, 3),
-            "eroare_medie": round(new_global_err, 3),
+            "bonus_greutate": round(new_bonus_g,3),
+            "eroare_medie": round(err_inst,3),
+            "coeficient_procente": round(new_coef_g,4)
         }
         if cand_block:
             bonuses[inst]["cand"] = cand_block
@@ -158,31 +259,56 @@ def compute_institute_bonuses(
     return bonuses
 
 
+# ----------------------------
+# SALVARE CU NORMALIZARE FINALĂ
+# ----------------------------
 def save_accuracy(bonuses: Dict[str, Dict[str, Any]]):
-    ACCURACY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(ACCURACY_PATH, "w", encoding="utf-8") as f:
-        json.dump(bonuses, f, ensure_ascii=False, indent=2)
-    print(f"✔ Bonusurile recalibrate au fost salvate în {ACCURACY_PATH}")
+
+    merged = {}
+
+    # combinăm institute duplicate după normalizare
+    for raw_inst, data in bonuses.items():
+        inst = normalize_institute(raw_inst)
+
+        if inst not in merged:
+            merged[inst] = data
+        else:
+            # media bonusurilor dacă existau dubluri
+            merged[inst]["bonus_greutate"] = round(
+                (merged[inst]["bonus_greutate"] + data["bonus_greutate"]) / 2, 3
+            )
+            merged[inst]["eroare_medie"] = round(
+                (merged[inst]["eroare_medie"] + data["eroare_medie"]) / 2, 3
+            )
+            merged[inst]["coeficient_procente"] = round(
+                (merged[inst]["coeficient_procente"] + data["coeficient_procente"]) / 2, 4
+            )
+
+    ACCURACY_PATH.write_text(
+        json.dumps(merged, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    print("✔ accuracy_institutes.json salvat (normalizat + curățat)")
 
 
+# ----------------------------
+# RUN
+# ----------------------------
 def calibrate_from_latest_snapshot():
     snapshot = load_latest_history()
-    final_results = snapshot.get("rezultate_complete") or {}
-    if not final_results:
-        raise ValueError("Snapshot-ul nu conține rezultate finale pentru calibrare.")
+    final_results = snapshot.get("rezultate_complete")
 
-    # PMB 2024 — data alegerilor
-    election_date = date(2024, 6, 9)
+    if not final_results:
+        raise ValueError("❌ Snapshot-ul nu are câmpul 'rezultate_complete'.")
+
     bonuses = compute_institute_bonuses(
         final_results=final_results,
-        election_date=election_date,
-        max_age_days=40,      # exact fereastra folosită și de agregator
-        learning_rate=0.3,    # învață treptat
+        election_date=date(2024,6,9),
+        max_age_days=40
     )
     save_accuracy(bonuses)
 
     print("\n==============================")
-    print("  AGENT DE CALIBRARE FINALIZAT")
+    print("  ✔ AGENTUL DE CALIBRARE A RULAT CU SUCCES")
     print("==============================\n")
 
 

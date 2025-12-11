@@ -72,19 +72,7 @@
     "marja_eroare": 3.0
   },
   {
-    "institut": "INSCOP",
-    "data": "2025-11-20",
-    "esantion": 1107,
-    "metoda": "interviuri față în față",
-    "procentaje": {
-      "Nicușor Dan": 48.3,
-      "Gabriela Firea": 22.34,
-      "Cristian Popescu Piedone": 25
-    },
-    "marja_eroare": 2.95
-  },
-  {
-    "institut": "Centrul de Sociologie Urbană și Regională (CURS)",
+    "institut": "CURS",
     "data": "2024-04-30",
     "esantion": 1107,
     "metoda": "sondaj de opinie",
@@ -103,23 +91,48 @@
     "procentaje": {
       "Nicușor Dan": 29,
       "Gabriela Firea": 26,
-      "Cristian Popescu Piedone": 25,
-      "Sebastian Burduja": 12,
-      "Mihai Enache": 7,
-      "Altul": 1
+      "Cristian Popescu Piedone": 25
     },
     "marja_eroare": 3
   },
   {
     "institut": "Centrul de Sociologie Urbană și Regională (CURS)",
+    "data": "2024-04-30",
+    "esantion": 1000,
+    "metoda": "interviuri față în față",
+    "procentaje": {
+      "Nicușor Dan": 29,
+      "Gabriela Firea": 26,
+      "Cristian Popescu Piedone": 25,
+      "Sebastian Burduja": 12,
+      "Mihai Enache": 7,
+      "Altul": 1
+    },
+    "marja_eroare": 3.1
+  },
+  {
+    "institut": "Centrul de Sociologie Urbană și Regională (CURS)",
     "data": "2024-04-01",
     "esantion": 1000,
-    "metoda": "sondaj de opinie",
+    "metoda": "interviuri față în față",
     "procentaje": {
       "Nicușor Dan": 29,
       "Gabriela Firea": 26,
       "Cristian Popescu Piedone": 25
     },
-    "marja_eroare": 3
+    "marja_eroare": 3.2
+  },
+  {
+    "institut": "INSCOP Research",
+    "data": "2024-04-30",
+    "esantion": 89.1,
+    "metoda": "sondaj de opinie",
+    "procentaje": {
+      "Nicușor Dan": 38.5,
+      "Gabriela Firea": 21.4,
+      "Cristian Popescu Piedone": 27.4,
+      "Sebastian Burduja": 10.1
+    },
+    "marja_eroare": 3.0
   }
 ]
