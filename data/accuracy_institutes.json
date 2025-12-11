@@ -1,22 +1,22 @@
 {
   "CURS": {
     "bonus_greutate": 0.901,
-    "eroare_medie": 5.703,
-    "coeficient_procente": 1.0194,
+    "eroare_medie": 5.704,
+    "coeficient_procente": 1.0201,
     "cand": {
       "Nicușor Dan": {
         "bonus_greutate": 0.7,
-        "eroare_medie": 11.314,
+        "eroare_medie": 11.312,
         "coeficient_procente": 1.6
       },
       "Gabriela Firea": {
-        "bonus_greutate": 1.154,
-        "eroare_medie": 0.845,
-        "coeficient_procente": 0.6421
+        "bonus_greutate": 1.155,
+        "eroare_medie": 0.839,
+        "coeficient_procente": 0.6397
       },
       "Cristian Popescu Piedone": {
-        "bonus_greutate": 0.943,
-        "eroare_medie": 4.948,
+        "bonus_greutate": 0.942,
+        "eroare_medie": 4.96,
         "coeficient_procente": 0.5
       }
     }
@@ -132,23 +132,23 @@
     }
   },
   "INSCOP Research": {
-    "bonus_greutate": 0.986,
-    "eroare_medie": 3.996,
-    "coeficient_procente": 0.894,
+    "bonus_greutate": 0.987,
+    "eroare_medie": 3.991,
+    "coeficient_procente": 0.8906,
     "cand": {
       "Nicușor Dan": {
-        "bonus_greutate": 0.857,
-        "eroare_medie": 6.829,
+        "bonus_greutate": 0.85,
+        "eroare_medie": 6.954,
         "coeficient_procente": 1.6
       },
       "Gabriela Firea": {
-        "bonus_greutate": 1.151,
-        "eroare_medie": 0.688,
-        "coeficient_procente": 1.3644
+        "bonus_greutate": 1.156,
+        "eroare_medie": 0.611,
+        "coeficient_procente": 1.3913
       },
       "Cristian Popescu Piedone": {
-        "bonus_greutate": 0.949,
-        "eroare_medie": 4.47,
+        "bonus_greutate": 0.955,
+        "eroare_medie": 4.407,
         "coeficient_procente": 0.5
       }
     }

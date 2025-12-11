@@ -11,37 +11,36 @@ def run_script(name, file):
     result = subprocess.run([sys.executable, file])
 
     print("\n--- FINALIZAT ---\n")
-    time.sleep(1)  # doar ca să fie outputul mai elegant
+    time.sleep(1)
 
     return result.returncode
 
 
 def main():
-
     print("\n=======================================")
-    print("     SISTEM COMPLET MY POLLS – RUN ALL ")
+    print("   SISTEM COMPLET MY POLLS – FULL ML ")
     print("=======================================\n")
 
-    # 1️⃣ RULĂM AGENTUL AI (fetch rezultate + sondaje)
+    # 1️⃣ Agent AI – fetch rezultate + sondaje
     code = run_script("AGENT (agent_update.py)", "agent_update.py")
     if code != 0:
         print("❌ Agentul a eșuat. Oprim execuția.")
         return
 
-    # 2️⃣ RULĂM AGREGATORUL (main.py — calculează estimarea + salvează snapshot)
-    code = run_script("AGREGATOR (main.py)", "main.py")
+    # 2️⃣ Train ML
+    code = run_script("ML TRAIN (ml_train.py)", "ml_train.py")
     if code != 0:
-        print("❌ Agregatorul a eșuat.")
+        print("❌ ML train a eșuat. Oprim execuția.")
         return
 
-    # 3️⃣ RULĂM AGENTUL DE CALIBRARE (update bonusuri pentru viitoarele rulări)
-    code = run_script("CALIBRARE (calibration_agent.py)", "testare_calibrare/calibration_agent.py")
+    # 3️⃣ Predict ML + snapshot
+    code = run_script("ML PREDICT (ml_predict.py)", "ml_predict.py")
     if code != 0:
-        print("❌ Agentul de calibrare a eșuat.")
+        print("❌ ML predict a eșuat.")
         return
 
     print("\n=======================================")
-    print("          TOTUL A FOST RULAT!")
+    print("       ✔ FULL ML PIPELINE GATA")
     print("=======================================\n")
 
 

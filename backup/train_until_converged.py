@@ -4,8 +4,8 @@ import time
 import json
 from pathlib import Path
 
-HISTORY_DIR = Path("data/history")
-RESULTS_PATH = Path("data/results_buc.json")
+HISTORY_DIR = Path("../data/history")
+RESULTS_PATH = Path("../data/results_buc.json")
 
 TOLERANTA = 3.0  # ±3%
 MAX_ITERATII = 50  # ca să nu intre în buclă infinită accidental

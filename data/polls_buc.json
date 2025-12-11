@@ -134,5 +134,19 @@
       "Sebastian Burduja": 10.1
     },
     "marja_eroare": 3.0
+  },
+  {
+    "institut": "Avangarde",
+    "data": "2024-04-27",
+    "esantion": 1150,
+    "metoda": "interviuri telefonice",
+    "procentaje": {
+      "Nicușor Dan": 31,
+      "Gabriela Firea": 24,
+      "Cristian Popescu Piedone": 20,
+      "Sebastian Burduja": 15,
+      "Mihai Enache": 7
+    },
+    "marja_eroare": 2.9
   }
 ]
