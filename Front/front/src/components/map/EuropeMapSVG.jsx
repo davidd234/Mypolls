@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import euMap from "../../assets/eu-map.svg?raw";
 import PoliticalLegend from "../legend/PoliticalLegend";
 import { Button } from "../ui/button";
+import { useNavigate } from "react-router-dom";
 
 /* ================= DATA ================= */
 
@@ -58,6 +59,7 @@ export default function EuropeMapSVG() {
 
   const isPanning = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
+const navigate = useNavigate();
 
   /* ================= INIT SVG & DRAG LOGIC ================= */
 
@@ -269,37 +271,93 @@ export default function EuropeMapSVG() {
 
       {/* INFO BOX */}
       {selected && (
-        <div
-          style={{
-            position: "absolute",
-            top: 60,
-            right: 20,
-            width: 260,
-            background: "rgba(15, 23, 42, 0.95)",
-            backdropFilter: "blur(4px)",
-            border: "1px solid #334155",
-            borderRadius: "6px",
-            padding: 16,
-            fontSize: 13,
-            color: "#e2e8f0",
-            zIndex: 20,
-            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.5)"
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-            <strong style={{ fontSize: 16 }}>{selected.name}</strong>
-            <button
-              onClick={() => setSelected(null)}
-              style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 14 }}
-            >
-              ✕
-            </button>
-          </div>
-          <div style={{ marginBottom: 4 }}>President: <span style={{ color: selected.president?.color || "#fff", fontWeight: 500 }}>{selected.president?.label || "N/A"}</span></div>
-          <div style={{ marginBottom: 4 }}>Government: <span style={{ color: selected.government?.color || "#fff", fontWeight: 500 }}>{selected.government?.label || "N/A"}</span></div>
-          <div>AI Stance: <span style={{ color: selected.ai?.color || "#fff", fontWeight: 500 }}>{selected.ai?.label || "N/A"}</span></div>
-        </div>
-      )}
+  <div
+    style={{
+      position: "absolute",
+      top: 60,
+      right: 20,
+      width: 280,
+      background: "rgba(15, 23, 42, 0.95)",
+      backdropFilter: "blur(6px)",
+      border: "1px solid #334155",
+      borderRadius: "8px",
+      padding: 16,
+      fontSize: 13,
+      color: "#e2e8f0",
+      zIndex: 20,
+      boxShadow: "0 10px 25px rgba(0,0,0,0.6)",
+    }}
+  >
+    {/* HEADER */}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 10,
+      }}
+    >
+      <strong style={{ fontSize: 16 }}>{selected.name}</strong>
+      <button
+        onClick={() => setSelected(null)}
+        style={{
+          background: "transparent",
+          border: "none",
+          color: "#94a3b8",
+          cursor: "pointer",
+          fontSize: 14,
+        }}
+      >
+        ✕
+      </button>
+    </div>
+
+    {/* INFO */}
+    <div style={{ marginBottom: 6 }}>
+      President:{" "}
+      <span style={{ color: selected.president?.color, fontWeight: 500 }}>
+        {selected.president?.label || "N/A"}
+      </span>
+    </div>
+
+    <div style={{ marginBottom: 6 }}>
+      Government:{" "}
+      <span style={{ color: selected.government?.color, fontWeight: 500 }}>
+        {selected.government?.label || "N/A"}
+      </span>
+    </div>
+
+    <div style={{ marginBottom: 12 }}>
+      AI Stance:{" "}
+      <span style={{ color: selected.ai?.color, fontWeight: 500 }}>
+        {selected.ai?.label || "N/A"}
+      </span>
+    </div>
+
+    {/* CTA BUTTON */}
+    <button
+      onClick={() =>
+        navigate(`/country/${selected.name.toLowerCase().slice(0, 2)}`)
+      }
+      style={{
+        width: "100%",
+        padding: "10px 12px",
+        background:
+          "linear-gradient(135deg, #2563eb 0%, #1e40af 100%)",
+        border: "none",
+        borderRadius: 6,
+        color: "#fff",
+        fontWeight: 600,
+        cursor: "pointer",
+        letterSpacing: "0.3px",
+        boxShadow: "0 4px 10px rgba(37,99,235,0.4)",
+      }}
+    >
+      View country details →
+    </button>
+  </div>
+)}
+
 
       <PoliticalLegend />
     </div>
