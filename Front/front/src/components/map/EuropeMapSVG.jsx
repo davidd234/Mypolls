@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import euMap from "../../assets/eu-map.svg?raw";
+import PoliticalLegend from "../legend/PoliticalLegend";
 
-/* MOCK DATA – temporar, ușor de înlocuit cu API */
+/* MOCK DATA */
 const COUNTRY_INFO = {
   ro: {
     name: "Romania",
@@ -35,24 +36,28 @@ export default function EuropeMapSVG() {
 
   useEffect(() => {
     const container = containerRef.current;
+    if (!container) return;
+
     container.innerHTML = euMap;
     const svg = container.querySelector("svg");
+    if (!svg) return;
 
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
-    svg.style.cursor = "grab";
     svg.style.background = "#0b0f14";
+    svg.style.cursor = "grab";
 
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
     while (svg.firstChild) g.appendChild(svg.firstChild);
     svg.appendChild(g);
     gRef.current = g;
 
-    // CENTER ON LOAD
+    /* CENTER ON LOAD */
     requestAnimationFrame(() => {
       const bbox = g.getBBox();
       const rect = svg.getBoundingClientRect();
       const scale = 1.1;
+
       setView({
         scale,
         x: rect.width / 2 - (bbox.x + bbox.width / 2) * scale,
@@ -60,57 +65,14 @@ export default function EuropeMapSVG() {
       });
     });
 
-    // PAN
-    svg.addEventListener("mousedown", (e) => {
-      isPanning.current = true;
-      lastPos.current = { x: e.clientX, y: e.clientY };
-      svg.style.cursor = "grabbing";
-    });
-
-    window.addEventListener("mousemove", (e) => {
-      if (!isPanning.current) return;
-      setView((v) => ({
-        ...v,
-        x: v.x + (e.clientX - lastPos.current.x),
-        y: v.y + (e.clientY - lastPos.current.y),
-      }));
-      lastPos.current = { x: e.clientX, y: e.clientY };
-    });
-
-    window.addEventListener("mouseup", () => {
-      isPanning.current = false;
-      svg.style.cursor = "grab";
-    });
-
-    // ZOOM (mouse centered)
-    svg.addEventListener(
-      "wheel",
-      (e) => {
-        e.preventDefault();
-        const rect = svg.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-
-        setView((v) => {
-          const factor = e.deltaY > 0 ? 0.9 : 1.1;
-          const newScale = Math.min(Math.max(v.scale * factor, 0.6), 4);
-          const ratio = newScale / v.scale;
-          return {
-            scale: newScale,
-            x: mx - ratio * (mx - v.x),
-            y: my - ratio * (my - v.y),
-          };
-        });
-      },
-      { passive: false }
-    );
-
-    // COUNTRY CLICK = FOCUS + PANEL
+    /* COUNTRY STYLE + CLICK */
     svg.querySelectorAll(".land").forEach((el) => {
       const code = el.id?.toLowerCase();
+
       el.style.fill = "#0f172a";
       el.style.stroke = "#2563eb";
       el.style.strokeWidth = "0.8";
+      el.style.cursor = "pointer";
 
       el.addEventListener("mouseenter", () => {
         el.style.fill = "#1e293b";
@@ -120,7 +82,10 @@ export default function EuropeMapSVG() {
         el.style.fill = "#0f172a";
       });
 
-      el.addEventListener("click", () => {
+      el.addEventListener("click", (e) => {
+        // Opțional: prevenim click-ul dacă tocmai am făcut drag (mic detaliu UX)
+        e.stopPropagation();
+
         const bbox = el.getBBox();
         const rect = svg.getBoundingClientRect();
         const scale = 2.2;
@@ -134,8 +99,52 @@ export default function EuropeMapSVG() {
         setSelected(COUNTRY_INFO[code] || { name: code.toUpperCase() });
       });
     });
+
+    /* --- FIX START: PAN LOGIC --- */
+
+    // 1. Mousedown direct pe SVG (nu prin React prop)
+    const onMouseDown = (e) => {
+      e.preventDefault(); // CRITIC: Oprește browserul să selecteze/traga SVG-ul ca imagine
+      isPanning.current = true;
+      lastPos.current = { x: e.clientX, y: e.clientY };
+      svg.style.cursor = "grabbing";
+    };
+
+    const onMouseMove = (e) => {
+      if (!isPanning.current) return;
+      e.preventDefault();
+
+      const dx = e.clientX - lastPos.current.x;
+      const dy = e.clientY - lastPos.current.y;
+
+      setView((v) => ({
+        ...v,
+        x: v.x + dx,
+        y: v.y + dy,
+      }));
+      lastPos.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const onMouseUp = () => {
+      isPanning.current = false;
+      svg.style.cursor = "grab";
+    };
+
+    // Atașăm mousedown direct de elementul SVG creat manual
+    svg.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+
+    return () => {
+      svg.removeEventListener("mousedown", onMouseDown); // Cleanup
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+    /* --- FIX END --- */
+
   }, []);
 
+  /* APPLY TRANSFORM */
   useEffect(() => {
     if (!gRef.current) return;
     gRef.current.setAttribute(
@@ -145,11 +154,34 @@ export default function EuropeMapSVG() {
   }, [view]);
 
   return (
-    <div style={{ position: "relative", height: "100%" }}>
+    <div
+      style={{ position: "relative", height: "100%" }}
+      // onMouseDown a fost scos de aici și mutat în useEffect
+      onWheel={(e) => {
+        e.preventDefault();
+        const rect = e.currentTarget.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        setView((v) => {
+          const factor = e.deltaY > 0 ? 0.9 : 1.1;
+          const newScale = Math.min(Math.max(v.scale * factor, 0.6), 4);
+          const ratio = newScale / v.scale;
+
+          return {
+            scale: newScale,
+            x: mx - ratio * (mx - v.x),
+            y: my - ratio * (my - v.y),
+          };
+        });
+      }}
+    >
       <div
         ref={containerRef}
         style={{ width: "100%", height: "100%", overflow: "hidden" }}
       />
+
+      <PoliticalLegend />
 
       {selected && (
         <div
@@ -162,27 +194,28 @@ export default function EuropeMapSVG() {
             border: "1px solid #1f2937",
             padding: 16,
             fontSize: 13,
+            pointerEvents: "none" // Ca să nu interfereze cu drag-ul dacă dai click pe tooltip
           }}
         >
           <strong>{selected.name}</strong>
 
           <div style={{ marginTop: 10 }}>
-            <div>President:</div>
-            <span style={{ color: selected.president?.color }}>
+            President:
+            <span style={{ color: selected.president?.color, marginLeft: 6 }}>
               {selected.president?.label}
             </span>
           </div>
 
           <div style={{ marginTop: 8 }}>
-            <div>Government:</div>
-            <span style={{ color: selected.government?.color }}>
+            Government:
+            <span style={{ color: selected.government?.color, marginLeft: 6 }}>
               {selected.government?.label}
             </span>
           </div>
 
           <div style={{ marginTop: 8 }}>
-            <div>AI alignment:</div>
-            <span style={{ color: selected.ai?.color }}>
+            AI alignment:
+            <span style={{ color: selected.ai?.color, marginLeft: 6 }}>
               {selected.ai?.label}
             </span>
           </div>
