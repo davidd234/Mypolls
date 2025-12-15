@@ -1,7 +1,30 @@
+# ===============================
+# 🔐 SECRETE (OBLIGATORIU)
+# ===============================
 secret_key.py
+.env
+.env.local
+
+# ===============================
+# 🐍 PYTHON – environment & cache
+# ===============================
+.venv/
+venv/
 __pycache__/
 *.pyc
-.env
-.venv/
+*.pyo
+
+# ===============================
+# ⚛️ FRONTEND – Node / Vite
+# ===============================
+Front/front/node_modules/
+Front/front/.vite/
+Front/front/dist/
+
+# ===============================
+# 🧠 OS / IDE
+# ===============================
 .idea/
-data/history/*.json
+.vscode/
+.DS_Store
+Thumbs.db

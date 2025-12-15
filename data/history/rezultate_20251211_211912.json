@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-12-11T21:19:12",
+  "top_3_agregare": [
+    {
+      "candidat": "Nicușor Dan",
+      "procent": 47.77932504572723
+    },
+    {
+      "candidat": "Gabriela Firea",
+      "procent": 22.6878765464894
+    },
+    {
+      "candidat": "Cristian Popescu Piedone",
+      "procent": 16.17000000000005
+    }
+  ],
+  "top_3_rezultate_finale": [
+    {
+      "candidat": "Nicușor Dan",
+      "procent": 47.94
+    },
+    {
+      "candidat": "Gabriela Firea",
+      "procent": 22.33
+    },
+    {
+      "candidat": "Cristian Popescu Piedone",
+      "procent": 16.17
+    }
+  ],
+  "estimari_complete": {
+    "Nicușor Dan": 47.77932504572723,
+    "Gabriela Firea": 22.6878765464894,
+    "Cristian Popescu Piedone": 16.17000000000005
+  },
+  "rezultate_complete": {
+    "Nicușor Dan": 47.94,
+    "Gabriela Firea": 22.33,
+    "Cristian Popescu Piedone": 16.17
+  }
+}
